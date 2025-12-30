@@ -21,6 +21,7 @@ int N, NUM_THREADS; //define matrix size and number of threads
 //functions declaration
 void MMM_init();
 int MMM();
+#define IDX(i, j) ((i)*N+(j)) //macro to convert 2D index to 1D index
 
 float *A, *B, *C; //define matrices as float pointers
 
@@ -67,9 +68,9 @@ void MMM_init() {
 	//MMM
 	for (unsigned int i = 0; i < N; i++) { 
 		for (unsigned int j = 0; j < N; j++) {
-			C[i][j] = 0.0f;
-			A[i][j] = ( (j+i) % 99) + e; 
-			B[i][j] = ( (j-i) % 99) - p; 
+			C[IDX(i,j)] = 0.0f;
+			A[IDX(i,j)] = ( (j+i) % 99) + e; 
+			B[IDX(i,j)] = ( (j-i) % 99) - p; 
 		}
 	}
 	   
@@ -77,22 +78,23 @@ void MMM_init() {
 }
 
 
-void MMM(int N, int NUM_THREADS) {
+int MMM() {
 
     omp_set_num_threads(NUM_THREADS); //specify number of threads
 
     double start = omp_get_wtime(); //start time measurement
 
-    #pragma omp parallel for private(j, k) //parallelize i loop
+    #pragma omp parallel for 
     for (int i = 0; i < N; i++) {
         for (int j = 0; j < N; j++) {
             float sum = 0.0f; //local variable to hold the sum
             for (int k = 0; k < N; k++) {
-                sum += A[i][k] * B[k][j];
+                sum += A[IDX(i,k)] * B[IDX(k,j)];
             }
-            C[i][j] = sum;
+            C[IDX(i,j)] = sum;
         }
     }
+	
 
     double end = omp_get_wtime(); //end time measurement
 
