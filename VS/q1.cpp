@@ -16,9 +16,9 @@
 
 unsigned short int equal(float a, float b); //in C, functions must be declared before main()
 void init();
-void q1();
-void q2();
-void q3();
+void q1_vec();
+void q2_vec();
+void q3_vec();
 
 
 #define N 256 //input size
