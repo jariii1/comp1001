@@ -25,16 +25,17 @@ int getint(FILE *fp);
 
 //CRITICAL POINT: images' paths - You need to change these paths
 char IN[] = "/Users/ngoni/Library/Mobile Documents/com~apple~CloudDocs/school /comp1001/comp1001/assignment2/Report/question1/VS/code_to_start/input_images/a1.pgm";
-char OUT[] = "/Users/ngoni/Library/Mobile Documents/com~apple~CloudDocs/school /comp1001/comp1001/assignment2/Report/question1/VS/code_to_start/output_images/edge_detection1.pgm";
+char OUT[] = "/Users/ngoni/Library/Mobile Documents/com~apple~CloudDocs/school /comp1001/comp1001/assignment2/Report/question1/VS/code_to_start/output_images/edge_output1.pgm";
 
 //IMAGE DIMENSIONS
-#define M 475  //cols
-#define N 460  //rows
+int N;
+int M;
 
 
 //CRITICAL POINT:these arrays are defined statically. Consider creating these arrays dynamically instead.
-unsigned char input_image[N*M];//input image
-unsigned char output_image[N*M];//output image
+unsigned char *input_image = NULL;
+unsigned char *output_image = NULL;
+int allocated_pixels = 0;
 
 
 const signed char GxMask[3][3] = {
@@ -54,13 +55,38 @@ errno_t err;
 
 int main() {
 
+	//filenames
+	char IN[100];
+	char OUT[100];
 
- read_image(IN);//read image from disc
+	for (int i = 1; i <= 31; i++) {
+    	sprintf(IN, "input_images/a%d.pgm", i);
+    	sprintf(OUT, "output_images/edge_detection%d.pgm", i);
 
- edge_detection( ); //apply edge detection
+		openfile(IN, NULL); //open input image file
 
- write_image2(OUT); //store output image to the disc
+		read_image(IN);//read image from disc
 
+		int size = M * N;
+
+		input_image = (unsigned char *) malloc(size * sizeof(unsigned char));
+		output_image = (unsigned char *) malloc(size * sizeof(unsigned char));
+
+		if (input_image == NULL || output_image == NULL) {
+			printf("Memory allocation failed!\n");
+    		exit(1);
+    
+		}
+
+		allocated_pixels = size;
+
+
+ 		edge_detection( ); //apply edge detection
+
+ 		write_image2(OUT); //store output image to the disc
+	}
+	free(input_image);
+	free(output_image);
 
  return 0;
 }
@@ -71,8 +97,8 @@ void edge_detection( ){
 	int row, col, rowOffset, colOffset;
 	int Gx, Gy;
 
-	for (row = 1; row < N - 1; row++) {
-		for (col = 1; col < M - 1; col++) {
+	for (row = 0; row < N; row++) {
+		for (col = 0; col < M; col++) {
 
 			Gx = 0;
 			Gy = 0;
@@ -89,8 +115,8 @@ void edge_detection( ){
 						pixel = input_image[M*r + c];
 					}
 
-					Gx += input_image[M*r + c] * GxMask[rowOffset + 1][colOffset + 1];
-					Gy += input_image[M*r + c] * GyMask[rowOffset + 1][colOffset + 1];
+					Gx += pixel * GxMask[rowOffset + 1][colOffset + 1];
+					Gy += pixel * GyMask[rowOffset + 1][colOffset + 1];
 					
 				}
 			}
@@ -197,10 +223,11 @@ void openfile(char* filename, FILE** finput)
 	y0 = getint(*finput);//this is N
 	printf("\t header is %s, while x=%d,y=%d", header, x0, y0);
 
+	M = x0;
+	N = y0;
 
 	//CRITICAL POINT: AT THIS POINT YOU CAN ASSIGN x0,y0 to M,N 
-	// printf("\n Image dimensions are M=%d,N=%d",M,N);
-
+	printf("\n Image dimensions are M=%d,N=%d",M, N);
 
 	x = getint(*finput); /* read and throw away the range info */
 	//printf("\n range info is %d",x);
